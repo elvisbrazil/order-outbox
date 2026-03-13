@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: order-outbox
+  datasource:
+    url: jdbc:postgresql://localhost:5432/orders
+    username: orders
+    password: orders
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
