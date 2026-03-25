@@ -52,6 +52,25 @@ public class Order {
         return new Order(UUID.randomUUID(), customerId, amount, now);
     }
 
+    public void pay(Instant now) {
+        if (status != OrderStatus.CREATED) {
+            throw new IllegalStateException("Cannot pay order " + id + " in status " + status);
+        }
+        moveTo(OrderStatus.PAID, now);
+    }
+
+    public void cancel(Instant now) {
+        if (status == OrderStatus.CANCELLED) {
+            throw new IllegalStateException("Order " + id + " is already cancelled");
+        }
+        moveTo(OrderStatus.CANCELLED, now);
+    }
+
+    private void moveTo(OrderStatus next, Instant now) {
+        this.status = next;
+        this.updatedAt = now;
+    }
+
     public UUID getId() {
         return id;
     }

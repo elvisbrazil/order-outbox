@@ -38,6 +38,16 @@ class OrderController {
         return OrderResponse.from(service.find(id));
     }
 
+    @PostMapping("/{id}/pay")
+    OrderResponse pay(@PathVariable UUID id) {
+        return OrderResponse.from(service.pay(id));
+    }
+
+    @PostMapping("/{id}/cancel")
+    OrderResponse cancel(@PathVariable UUID id) {
+        return OrderResponse.from(service.cancel(id));
+    }
+
     record CreateOrderRequest(
             @NotBlank String customerId,
             @NotNull @DecimalMin(value = "0.01") @Digits(integer = 10, fraction = 2) BigDecimal amount) {}

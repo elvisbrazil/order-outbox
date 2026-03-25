@@ -13,8 +13,14 @@ public sealed interface OrderEvent {
     default String type() {
         return switch (this) {
             case OrderCreated ignored -> "OrderCreated";
+            case OrderPaid ignored -> "OrderPaid";
+            case OrderCancelled ignored -> "OrderCancelled";
         };
     }
 
     record OrderCreated(UUID orderId, String customerId, BigDecimal amount, Instant occurredAt) implements OrderEvent {}
+
+    record OrderPaid(UUID orderId, BigDecimal amount, Instant occurredAt) implements OrderEvent {}
+
+    record OrderCancelled(UUID orderId, OrderStatus previousStatus, Instant occurredAt) implements OrderEvent {}
 }
