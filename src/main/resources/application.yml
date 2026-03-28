@@ -9,6 +9,19 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: validate
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      acks: all
+    consumer:
+      auto-offset-reset: earliest
   mvc:
     problemdetails:
       enabled: true
+
+outbox:
+  topic: orders.events
+  batch-size: 100
+  send-timeout: 5s
+  relay:
+    interval-ms: 500
