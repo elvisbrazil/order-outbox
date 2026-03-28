@@ -9,7 +9,6 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.KafkaException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Limit;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,7 +40,7 @@ public class OutboxRelay {
     @Transactional
     public int publishPending() {
         var published = 0;
-        for (var event : repository.findByPublishedAtIsNullOrderByCreatedAt(Limit.of(properties.batchSize()))) {
+        for (var event : repository.lockNextBatch(properties.batchSize())) {
             if (send(event)) {
                 event.markPublished(clock.instant());
                 published++;
