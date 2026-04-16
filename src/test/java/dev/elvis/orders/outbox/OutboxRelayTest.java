@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -67,6 +68,26 @@ class OutboxRelayTest {
         assertThat(header(record, OutboxRelay.EVENT_ID_HEADER))
                 .isEqualTo(event.getId().toString());
         assertThat(header(record, OutboxRelay.EVENT_TYPE_HEADER)).isEqualTo("OrderPaid");
+    }
+
+    @Test
+    void stopsAtFirstFailureAndLeavesRemainingEventsUnpublished() {
+        var first = event("order-1", "OrderCreated");
+        var failing = event("order-1", "OrderPaid");
+        var third = event("order-1", "OrderCancelled");
+        when(repository.lockNextBatch(10)).thenReturn(List.of(first, failing, third));
+        doReturn(CompletableFuture.completedFuture(null))
+                .doReturn(CompletableFuture.failedFuture(new KafkaException("broker unavailable")))
+                .when(kafka)
+                .send(any(ProducerRecord.class));
+
+        var published = relay.publishPending();
+
+        assertThat(published).isEqualTo(1);
+        assertThat(first.isPublished()).isTrue();
+        assertThat(failing.isPublished()).isFalse();
+        assertThat(third.isPublished()).isFalse();
+        verify(kafka, times(2)).send(any(ProducerRecord.class));
     }
 
     @Test

@@ -41,10 +41,11 @@ public class OutboxRelay {
     public int publishPending() {
         var published = 0;
         for (var event : repository.lockNextBatch(properties.batchSize())) {
-            if (send(event)) {
-                event.markPublished(clock.instant());
-                published++;
+            if (!send(event)) {
+                break;
             }
+            event.markPublished(clock.instant());
+            published++;
         }
         return published;
     }
