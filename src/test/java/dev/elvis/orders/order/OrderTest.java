@@ -33,7 +33,7 @@ class OrderTest {
     void rejectsPayingTwice() {
         order.pay(NOW);
 
-        assertThatThrownBy(() -> order.pay(NOW)).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> order.pay(NOW)).isInstanceOf(InvalidOrderTransitionException.class);
     }
 
     @Test
@@ -49,13 +49,13 @@ class OrderTest {
     void rejectsPayingCancelledOrder() {
         order.cancel(NOW);
 
-        assertThatThrownBy(() -> order.pay(NOW)).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> order.pay(NOW)).isInstanceOf(InvalidOrderTransitionException.class);
     }
 
     @Test
     void rejectsCancellingTwice() {
         order.cancel(NOW);
 
-        assertThatThrownBy(() -> order.cancel(NOW)).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> order.cancel(NOW)).isInstanceOf(InvalidOrderTransitionException.class);
     }
 }

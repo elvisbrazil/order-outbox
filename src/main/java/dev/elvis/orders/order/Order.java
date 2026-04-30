@@ -54,14 +54,14 @@ public class Order {
 
     public void pay(Instant now) {
         if (status != OrderStatus.CREATED) {
-            throw new IllegalStateException("Cannot pay order " + id + " in status " + status);
+            throw new InvalidOrderTransitionException(id, status, OrderStatus.PAID);
         }
         moveTo(OrderStatus.PAID, now);
     }
 
     public void cancel(Instant now) {
         if (status == OrderStatus.CANCELLED) {
-            throw new IllegalStateException("Order " + id + " is already cancelled");
+            throw new InvalidOrderTransitionException(id, status, OrderStatus.CANCELLED);
         }
         moveTo(OrderStatus.CANCELLED, now);
     }
