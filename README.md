@@ -25,6 +25,16 @@ curl localhost:8080/orders/{id}
 curl localhost:8080/orders/{id}/history
 ```
 
+To watch the raw events:
+
+```
+docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
+  --bootstrap-server localhost:9092 --topic orders.events --from-beginning \
+  --property print.key=true --property print.headers=true
+```
+
+Invalid transitions (paying a cancelled order, cancelling twice) return `409`, unknown ids return `404`, both as `application/problem+json`.
+
 ## Design notes
 
 - The order and its event are committed together, so there is no window where the order exists but the event is lost (or the other way around). Publishing happens later and asynchronously.
@@ -32,3 +42,4 @@ curl localhost:8080/orders/{id}/history
 - Each row is sent and acknowledged before it is marked as published. On the first failure the relay stops the batch and leaves the remaining rows for the next run, which keeps events of the same order in sequence. The downside is that a single row that can never be sent blocks the ones behind it; a real system would want an attempt counter and a parking table.
 - Delivery is at-least-once: if the database commit fails after Kafka acknowledged a send, the same event goes out again. The consumer stores processed event ids (`processed_event`) in the same transaction as the projection and skips ids it has already seen.
 - The event id and type travel as Kafka headers, the payload is plain JSON. Using the order id as key keeps all events of one order on the same partition.
+- The payload column is `text` rather than `jsonb` so the same Flyway scripts run on H2 in tests.
